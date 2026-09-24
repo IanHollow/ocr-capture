@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a reproducible defect
+body:
+  - type: markdown
+    attributes:
+      value: For security issues, use private vulnerability reporting instead.
+  - type: input
+    id: version
+    attributes:
+      label: Revision and platform
+      description: Include the commit or package version and operating system.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
