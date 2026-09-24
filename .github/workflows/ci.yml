@@ -1,14 +1,24 @@
 name: CI
 on:
   push:
+    branches: [main]
   pull_request:
-permissions:
-  contents: read
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   quality:
+    name: quality
     runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: nix-forge/ci/actions/setup-nix@4f58fd74e91957fa257cb48e2fa2687e09689e2c # v2.8.0
       - run: nix develop --command bash Scripts/check-quality.sh
       - run: nix flake check --show-trace

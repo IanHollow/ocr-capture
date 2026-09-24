@@ -109,3 +109,14 @@ recipe. The repository has no remote yet.
 The repository flake supplies the pinned quality tools. On a supported Mac,
 run `nix develop --command bash Scripts/check-quality.sh` and
 `nix flake check` before submitting a change. CI runs both commands.
+
+## Project health
+
+[![CI](https://github.com/IanHollow/ocr-capture/actions/workflows/ci.yml/badge.svg)](https://github.com/IanHollow/ocr-capture/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/IanHollow/ocr-capture/actions/workflows/codeql.yml/badge.svg)](https://github.com/IanHollow/ocr-capture/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IanHollow/ocr-capture/badge)](https://scorecard.dev/viewer/?uri=github.com/IanHollow/ocr-capture)
+
+Security and release expectations are documented in [SECURITY.md](SECURITY.md),
+[SUPPORT.md](SUPPORT.md), and [security and release process](docs/security-and-releases.md).
+The project has no official releases and does not claim an OSPS Baseline level,
+OpenSSF Best Practices passing badge, or SLSA Build level yet.
