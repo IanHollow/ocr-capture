@@ -7,11 +7,11 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 env:
-  SLSA_BUILDER_SHA: bb1b39a9082f72dc6c7ce596103ce7a5e4d29b01
+  SLSA_BUILDER_SHA: ad4636807b071e44dc4db0b1b470ab99a5fa3aba
 jobs:
   build:
     name: build and attest source release
-    uses: nix-forge/ci/.github/workflows/slsa-source-release.yml@bb1b39a9082f72dc6c7ce596103ce7a5e4d29b01 # v2.8.0-compatible SLSA builder
+    uses: nix-forge/ci/.github/workflows/slsa-source-release.yml@ad4636807b071e44dc4db0b1b470ab99a5fa3aba # v2.8.0-compatible SLSA builder
     with:
       project_name: ocr-capture
       release_notes_directory: docs/releases
