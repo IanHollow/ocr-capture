@@ -22,6 +22,6 @@
   "test_invocation_justification": "Local validation commands are documented at https://github.com/IanHollow/ocr-capture#readme.",
   "test_continuous_integration_status": "Met",
   "test_continuous_integration_justification": "GitHub Actions runs required quality checks on pull requests: https://github.com/IanHollow/ocr-capture/actions.",
-  "osps_qa_07_01_status": "Unmet",
-  "osps_qa_07_01_justification": "The project currently has one maintainer and requires zero approving reviews; see https://github.com/IanHollow/ocr-capture/blob/main/GOVERNANCE.md and its protected main ruleset."
+  "OSPS-QA-07.01_status": "Unmet",
+  "OSPS-QA-07.01_justification": "The project currently has one maintainer and requires zero approving reviews; see https://github.com/IanHollow/ocr-capture/blob/main/GOVERNANCE.md and its protected main ruleset."
 }
