@@ -1,14 +1,38 @@
 # OCR Capture
 
-OCR Capture is a native macOS screenshot-to-text helper. It includes a Swift
-package and a Nix recipe.
+[![OpenSSF Baseline: not assessed](https://img.shields.io/badge/OpenSSF%20Baseline-not%20assessed-lightgrey)](https://baseline.openssf.org/)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IanHollow/ocr-capture/badge)](https://scorecard.dev/viewer/?uri=github.com/IanHollow/ocr-capture)
+[![OpenSSF Best Practices: not enrolled](https://img.shields.io/badge/OpenSSF%20Best%20Practices-not%20enrolled-lightgrey)](https://www.bestpractices.dev/)
+
+OCR Capture copies text from a selected screen region to the macOS clipboard.
+It runs locally and uses Apple's Screenshot and Vision services.
+
+## Install
+
+On macOS 14 or newer with Nix, install the package from this repository:
+
+```console
+nix profile install github:IanHollow/ocr-capture
+```
+
+The package is also available from
+[`nixpkgs-personal`](https://github.com/nix-forge/nixpkgs-personal).
+The [source releases](https://github.com/IanHollow/ocr-capture/releases) contain
+versioned source archives; they do not contain a prebuilt app.
+
+## Use
 
 Press `Command-Shift-7`, select a region with the standard macOS Screenshot
 interaction, and the recognized text replaces the captured image on the normal
-system clipboard. macOS owns the complete interaction: cursor, coordinate
-display, selection behavior, multi-display handling, Escape cancellation,
-permission UI, and capture sound. OCR Capture does not draw an overlay, reticle,
-progress HUD, notification, or review window.
+system clipboard when the Nix/Home Manager shortcut is configured. To run it
+directly:
+
+```console
+hm-ocr-capture capture
+```
+
+macOS handles selection, permission prompts, multiple displays, and Escape
+cancellation. OCR Capture does not add its own overlay or review window.
 
 ## Implementation
 
@@ -17,12 +41,6 @@ region and clipboard mode, decodes the resulting in-memory pasteboard image,
 recognizes its text locally with Vision, and writes plain text back to the
 pasteboard. It does not create an intermediate screenshot file, contact a
 network service, or keep a resident process after the result is copied.
-
-The normal capture is intentionally one action:
-
-```console
-hm-ocr-capture capture --recognition accurate --backend automatic --render lines
-```
 
 Image and standard-input commands remain available for testing and automation:
 
@@ -102,9 +120,8 @@ and twenty warm selftests per mode. Temporary binaries are removed on exit.
 
 ## Nix packaging
 
-`package.nix` is the current package recipe.
-[`nixpkgs-personal`](https://github.com/nix-forge/nixpkgs-personal) fetches a
-pinned revision of this repository and calls that recipe.
+`package.nix` is the package recipe. `nixpkgs-personal` fetches a pinned
+revision of this repository and calls that recipe.
 
 The repository flake supplies the pinned quality tools. On a supported Mac,
 run `nix develop --command bash Scripts/check-quality.sh` and
@@ -112,14 +129,10 @@ run `nix develop --command bash Scripts/check-quality.sh` and
 
 ## Project health
 
-[![CI](https://github.com/IanHollow/ocr-capture/actions/workflows/ci.yml/badge.svg)](https://github.com/IanHollow/ocr-capture/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/IanHollow/ocr-capture/actions/workflows/codeql.yml/badge.svg)](https://github.com/IanHollow/ocr-capture/actions/workflows/codeql.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IanHollow/ocr-capture/badge)](https://scorecard.dev/viewer/?uri=github.com/IanHollow/ocr-capture)
-
 Security and release expectations are documented in [SECURITY.md](SECURITY.md),
 [SUPPORT.md](SUPPORT.md), and [security and release process](docs/security-and-releases.md).
-The [source releases](https://github.com/IanHollow/ocr-capture/releases) provide
-versioned archives, checksums, and provenance. The first release is `v0.1.0`.
-There is no OSPS Baseline level or OpenSSF Best Practices passing
-claim for this repository. SLSA claims, if any, apply only to verified
-release archives, not to Nix builds or the whole repository.
+Releases provide checksums and provenance for the source archives. The first
+release is `v0.1.0`. The gray OpenSSF badges above indicate that this project
+has not been enrolled or assessed by the Best Practices service; they do not
+claim a Baseline level or a passing Best Practices status. SLSA claims, if any,
+apply only to verified release archives, not to Nix builds or the repository.
