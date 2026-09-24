@@ -99,6 +99,9 @@ Swift 6 toolchains also run parameterized Swift Testing cases for nonfinite
 numeric inputs, integer overflow, and accepted option boundaries. Existing
 XCTest coverage remains available with Swift 5.10. Run both suites with
 `swift test`; the newer cases compile only when the toolchain supplies Testing.
+The XCTest suite also runs 1,000 reproducible, bounded mutations of CLI
+arguments against the production parser. These are fuzz smoke cases with a
+fixed seed, so failures can be reproduced and routine CI runtime stays bounded.
 
 The direct release build uses whole-module optimization. A bounded comparison
 on arm64 macOS with Swift 5.10.1 and 6.3.3 reduced the legacy-backend executable
