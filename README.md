@@ -102,9 +102,9 @@ and twenty warm selftests per mode. Temporary binaries are removed on exit.
 
 ## Nix packaging
 
-`package.nix` is the current package recipe. Once this repository has a
-published immutable revision, `nixpkgs-personal` can fetch it and call that
-recipe. The repository has no remote yet.
+`package.nix` is the current package recipe.
+[`nixpkgs-personal`](https://github.com/nix-forge/nixpkgs-personal) fetches a
+pinned revision of this repository and calls that recipe.
 
 The repository flake supplies the pinned quality tools. On a supported Mac,
 run `nix develop --command bash Scripts/check-quality.sh` and
@@ -118,5 +118,8 @@ run `nix develop --command bash Scripts/check-quality.sh` and
 
 Security and release expectations are documented in [SECURITY.md](SECURITY.md),
 [SUPPORT.md](SUPPORT.md), and [security and release process](docs/security-and-releases.md).
-The project has no official releases and does not claim an OSPS Baseline level,
-OpenSSF Best Practices passing badge, or SLSA Build level yet.
+The [source releases](https://github.com/IanHollow/ocr-capture/releases) provide
+versioned archives, checksums, and provenance. The first release is `v0.1.0`.
+There is no OSPS Baseline level or OpenSSF Best Practices passing
+claim for this repository. SLSA claims, if any, apply only to verified
+release archives, not to Nix builds or the whole repository.

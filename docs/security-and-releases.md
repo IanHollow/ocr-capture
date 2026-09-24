@@ -12,4 +12,47 @@ Do not store credentials in source, issue text, logs, or CI artifacts. Prefer Gi
 
 ## Releases
 
-No official releases or compiled release assets exist yet. Before the first release, document the supported platforms and end-of-support date, review security findings, assign a unique version, publish a change log, and ensure user and build instructions are current. Every binary asset must carry an SBOM, cryptographic digest, and signed provenance or signed manifest. Keep the release workflow separate from untrusted pull request jobs, use an immutable source revision and a reviewed, pinned build environment, and verify the expected release identity and hashes in the user guide. A SLSA Build Level 3 claim requires an actual release and verification of its provenance against the [SLSA v1.2 specification](https://slsa.dev/spec/v1.2/); the current source-only workflow makes no SLSA level claim.
+The `v0.1.0` release is a source archive, with no prebuilt application or shared
+library. The tag must name a commit on protected `main`, match the version in
+`package.nix`, and include reviewed [release notes](releases/v0.1.0.md) with a
+changelog, supported platform, and support end date. Prebuilt macOS assets
+would also require a stable Apple signing identity, notarization, and a separate
+security review; a Nix-built package is not a general-purpose binary release.
+
+A tag push calls the pinned
+[`nix-forge/ci` source-release builder](https://github.com/nix-forge/ci/blob/bb1b39a9082f72dc6c7ce596103ce7a5e4d29b01/.github/workflows/slsa-source-release.yml)
+as a reusable workflow. That isolated workflow creates the exact source archive,
+SHA-256 checksum, manifest, and Sigstore SLSA provenance. A separate release
+job checks the tag, version, source commit, archive digest, builder identity,
+builder revision, and signed provenance before publishing a draft release.
+GitHub's immutable-release setting locks the published tag and assets. The
+release job has no path from an untrusted pull request and is the only job with
+`contents: write`.
+
+A verified source archive may support a **SLSA Build Level 3 claim for that
+archive alone**, using GitHub's reusable-workflow method. The claim depends on
+the actual published release and successful verification of its provenance;
+it does not cover Nix-built binaries, macOS application bundles, arbitrary
+GitHub-generated archives, or the repository as a whole. See the
+[SLSA build requirements](https://slsa.dev/spec/v1.2/build-track-basics) and
+[GitHub's reusable-workflow guidance](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/increase-security-rating).
+
+## Verify a source release
+
+Download the release assets and check the archive's checksum and provenance:
+
+```sh
+gh release download v0.1.0 --repo IanHollow/ocr-capture --dir release
+cd release
+shasum -a 256 -c ocr-capture-v0.1.0.tar.gz.sha256
+gh attestation verify ocr-capture-v0.1.0.tar.gz \
+  --repo IanHollow/ocr-capture \
+  --bundle ocr-capture-v0.1.0.intoto.jsonl \
+  --signer-workflow nix-forge/ci/.github/workflows/slsa-source-release.yml \
+  --signer-digest bb1b39a9082f72dc6c7ce596103ce7a5e4d29b01 \
+  --source-ref refs/tags/v0.1.0
+```
+
+The `release-manifest.txt` asset records the exact source commit and archive
+SHA-256. Compare those values with the tag and the checksum before building.
+For private vulnerability reports, use [SECURITY.md](../SECURITY.md).
