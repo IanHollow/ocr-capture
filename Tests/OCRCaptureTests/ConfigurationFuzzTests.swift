@@ -34,7 +34,8 @@ final class ConfigurationFuzzTests: XCTestCase {
           bytes[min(offset, bytes.count - 1)] = UInt8(truncatingIfNeeded: random.next())
         }
       }
-      arguments[position] = String(decoding: bytes, as: UTF8.self)
+      guard let mutated = String(bytes: bytes, encoding: .utf8) else { continue }
+      arguments[position] = mutated
 
       do {
         let result = try ConfigurationParser.parse(arguments)
