@@ -1,0 +1,95 @@
+name: Release
+on:
+  push:
+    tags: ["v*.*.*"]
+permissions: {}
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  SLSA_BUILDER_SHA: bb1b39a9082f72dc6c7ce596103ce7a5e4d29b01
+jobs:
+  build:
+    name: build and attest source release
+    uses: nix-forge/ci/.github/workflows/slsa-source-release.yml@bb1b39a9082f72dc6c7ce596103ce7a5e4d29b01 # v2.8.0-compatible SLSA builder
+    with:
+      project_name: ocr-capture
+      release_notes_directory: docs/releases
+    permissions:
+      contents: read # Read the tagged source for the release archive.
+      id-token: write # Request a short-lived Sigstore signing identity.
+      attestations: write # Publish provenance to GitHub's attestation store.
+  publish:
+    name: publish source release
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      actions: read # Download the immutable builder output.
+      contents: write # Publish the verified tagged release.
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+          persist-credentials: false
+      - name: Validate release metadata
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          notes="docs/releases/$TAG.md"
+          test -s "$notes"
+          grep -q '^## Changelog$' "$notes"
+          version="${TAG#v}"
+          grep -F "version = \"$version\";" package.nix
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Download the builder output
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ocr-capture-slsa-release
+          path: release
+      - name: Verify release bytes and provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLSA_BUILDER_SHA: ${{ env.SLSA_BUILDER_SHA }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          archive="release/ocr-capture-$TAG.tar.gz"
+          checksum="$archive.sha256"
+          manifest="release/release-manifest.txt"
+          bundle="release/ocr-capture-$TAG.intoto.jsonl"
+          test -s "$archive"
+          test -s "$checksum"
+          test -s "$manifest"
+          test -s "$bundle"
+          (cd release && sha256sum -c "$(basename "$checksum")")
+          grep -Fx "repository=$GITHUB_REPOSITORY" "$manifest"
+          grep -Fx "source_ref=$GITHUB_REF" "$manifest"
+          grep -Fx "source_commit=$GITHUB_SHA" "$manifest"
+          grep -Fx "archive=$(basename "$archive")" "$manifest"
+          grep -Fx "builder_workflow=nix-forge/ci/.github/workflows/slsa-source-release.yml" "$manifest"
+          tag_commit="$(git rev-parse "${GITHUB_REF}^{commit}")"
+          [[ "$tag_commit" == "$GITHUB_SHA" ]]
+          for subject in "$archive" "$checksum" "$manifest"; do
+            gh attestation verify "$subject" \
+              --repo "$GITHUB_REPOSITORY" \
+              --bundle "$bundle" \
+              --signer-workflow nix-forge/ci/.github/workflows/slsa-source-release.yml \
+              --signer-digest "$SLSA_BUILDER_SHA" \
+              --source-ref "$GITHUB_REF"
+          done
+      - name: Publish the verified release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: >-
+          gh release create "$TAG" "release/ocr-capture-$TAG.tar.gz" "release/ocr-capture-$TAG.tar.gz.sha256"
+          "release/ocr-capture-$TAG.intoto.jsonl" release/release-manifest.txt --verify-tag --draft
+          --notes-file "docs/releases/$TAG.md" --title "ocr-capture $TAG" && gh release edit
+          "$TAG" --draft=false
