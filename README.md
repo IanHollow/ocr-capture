@@ -1,6 +1,7 @@
 # OCR Capture
 
-OCR Capture is a small, native macOS screenshot-to-text helper with a standalone Swift package and a Nix recipe.
+OCR Capture is a native macOS screenshot-to-text helper. It includes a Swift
+package and a Nix recipe.
 
 Press `Command-Shift-7`, select a region with the standard macOS Screenshot
 interaction, and the recognized text replaces the captured image on the normal
@@ -26,7 +27,8 @@ hm-ocr-capture capture --recognition accurate --backend automatic --render lines
 Image and standard-input commands remain available for testing and automation:
 
 ```console
-hm-ocr-capture image scan.png --backend document --render markdown --destination stdout
+hm-ocr-capture image scan.png --backend document \
+  --render markdown --destination stdout
 cat scan.png | hm-ocr-capture stdin --json
 hm-ocr-capture languages
 hm-ocr-capture diagnose
@@ -65,7 +67,8 @@ From this repository on macOS with Xcode installed:
 Scripts/check-quality.sh
 ```
 
-Install SwiftLint and Periphery before running the full quality script. Xcode supplies Swift and swift-format. `swift test` runs the unit suite without those extra tools.
+Use `nix develop` to supply SwiftLint and Periphery. Xcode supplies Swift and
+swift-format. `swift test` runs the unit suite without those extra tools.
 
 The suite runs swift-format, SwiftLint, compiler warnings and strict concurrency,
 unit tests, strict-memory checks, Periphery, AddressSanitizer, and
@@ -99,4 +102,10 @@ and twenty warm selftests per mode. Temporary binaries are removed on exit.
 
 ## Nix packaging
 
-`package.nix` is the current package recipe. Once this repository has a published immutable revision, `nixpkgs-personal` can fetch it and call that recipe. The repository has no remote yet.
+`package.nix` is the current package recipe. Once this repository has a
+published immutable revision, `nixpkgs-personal` can fetch it and call that
+recipe. The repository has no remote yet.
+
+The repository flake supplies the pinned quality tools. On a supported Mac,
+run `nix develop --command bash Scripts/check-quality.sh` and
+`nix flake check` before submitting a change. CI runs both commands.

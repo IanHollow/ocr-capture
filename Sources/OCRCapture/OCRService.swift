@@ -1,4 +1,5 @@
 import CoreGraphics
+import Darwin
 import Foundation
 import ImageIO
 
@@ -15,7 +16,26 @@ enum ImageLoader {
       throw OCRCaptureError.decodeFailed("not a regular file")
     }
     if let size = values.fileSize, size > maximumBytes { throw OCRCaptureError.imageTooLarge(size) }
-    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+    // Read from one open descriptor so a file replacement cannot bypass the limit.
+    #if compiler(>=6.2)
+      let descriptor = unsafe open(path, O_RDONLY | O_NONBLOCK | O_CLOEXEC)
+    #else
+      let descriptor = open(path, O_RDONLY | O_NONBLOCK | O_CLOEXEC)
+    #endif
+    guard descriptor >= 0 else { throw OCRCaptureError.decodeFailed(path) }
+    let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+    defer { try? handle.close() }
+    var information = stat()
+    #if compiler(>=6.2)
+      let status = unsafe fstat(handle.fileDescriptor, &information)
+    #else
+      let status = fstat(handle.fileDescriptor, &information)
+    #endif
+    guard status == 0, information.st_mode & S_IFMT == S_IFREG else {
+      throw OCRCaptureError.decodeFailed("not a regular file")
+    }
+    let data = try readBounded(from: handle, maximumBytes: maximumBytes)
+    guard let source = CGImageSourceCreateWithData(data as CFData, nil),
       let image = CGImageSourceCreateImageAtIndex(
         source, 0, [kCGImageSourceShouldCache: false] as CFDictionary)
     else { throw OCRCaptureError.decodeFailed(path) }
@@ -23,20 +43,25 @@ enum ImageLoader {
   }
 
   static func fromStandardInput(maximumBytes: Int) throws -> CGImage {
-    var data = Data()
-    while let chunk = try FileHandle.standardInput.read(
-      upToCount: min(1_048_576, maximumBytes + 1 - data.count)),
-      !chunk.isEmpty
-    {
-      data.append(chunk)
-      guard data.count <= maximumBytes else { throw OCRCaptureError.imageTooLarge(data.count) }
-    }
+    let data = try readBounded(from: .standardInput, maximumBytes: maximumBytes)
     guard !data.isEmpty,
       let source = CGImageSourceCreateWithData(data as CFData, nil),
       let image = CGImageSourceCreateImageAtIndex(
         source, 0, [kCGImageSourceShouldCache: false] as CFDictionary)
     else { throw OCRCaptureError.decodeFailed("standard input") }
     return image
+  }
+
+  private static func readBounded(from handle: FileHandle, maximumBytes: Int) throws -> Data {
+    var data = Data()
+    while true {
+      let remaining = maximumBytes - data.count
+      let readSize = remaining >= 1_048_576 ? 1_048_576 : remaining + 1
+      guard let chunk = try handle.read(upToCount: readSize), !chunk.isEmpty else { break }
+      data.append(chunk)
+      guard data.count <= maximumBytes else { throw OCRCaptureError.imageTooLarge(data.count) }
+    }
+    return data
   }
 }
 

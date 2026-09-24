@@ -5,9 +5,10 @@ on:
 permissions:
   contents: read
 jobs:
-  test:
+  quality:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: |
-          swift test -Xswiftc -D -Xswiftc OCR_CAPTURE_NIX_BUILD
+      - uses: nix-forge/ci/actions/setup-nix@4f58fd74e91957fa257cb48e2fa2687e09689e2c # v2.8.0
+      - run: nix develop --command bash Scripts/check-quality.sh
+      - run: nix flake check --show-trace

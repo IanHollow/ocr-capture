@@ -18,6 +18,20 @@
       }
     }
 
+    @Test
+    func rejectsResourceLimits() {
+      for (option, value) in [
+        ("--max-pixels", "100000001"),
+        ("--max-input-bytes", "268435457"),
+        ("--timeout", "301"),
+        ("--timeout", "0.01"),
+      ] {
+        #expect(throws: OCRCaptureError.self) {
+          _ = try ConfigurationParser.parse(["capture", option, value])
+        }
+      }
+    }
+
     @Test(arguments: [0, 1])
     func acceptsTextHeightBoundaries(value: Int) throws {
       let configuration = try ConfigurationParser.parse([

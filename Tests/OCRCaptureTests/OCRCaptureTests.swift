@@ -222,6 +222,13 @@ final class NativeUIRegressionTests: XCTestCase {
 }
 
 final class SecurityPolicyTests: XCTestCase {
+  func testImageFileReadEnforcesByteLimit() throws {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try Data(repeating: 0, count: 2_048).write(to: url)
+    defer { try? FileManager.default.removeItem(at: url) }
+    XCTAssertThrowsError(try ImageLoader.fromFile(url.path, maximumBytes: 1_024))
+  }
+
   func testImageCommandReturnsFailureForMissingInput() throws {
     let executable = Bundle(for: Self.self).bundleURL.deletingLastPathComponent()
       .appendingPathComponent("hm-ocr-capture")

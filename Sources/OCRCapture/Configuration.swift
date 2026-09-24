@@ -72,10 +72,12 @@ enum ConfigurationParser {
       case "--minimum-text-height":
         configuration.minimumTextHeight = try float(try value(), argument)
       case "--small-text": configuration.smallText = true
-      case "--max-pixels": configuration.maximumPixels = try positiveInt(try value(), argument)
+      case "--max-pixels":
+        configuration.maximumPixels = try boundedInt(try value(), argument, 1...100_000_000)
       case "--max-input-bytes":
-        configuration.maximumInputBytes = try positiveInt(try value(), argument)
-      case "--timeout": configuration.timeout = try positiveDouble(try value(), argument)
+        configuration.maximumInputBytes = try boundedInt(try value(), argument, 1...268_435_456)
+      case "--timeout":
+        configuration.timeout = try boundedDouble(try value(), argument, 0.1...300)
       case "--candidates":
         configuration.maximumCandidates = try boundedInt(try value(), argument, 1...10)
       case "--orientation":
@@ -127,6 +129,16 @@ enum ConfigurationParser {
   private static func positiveDouble(_ value: String, _ option: String) throws -> Double {
     let number = try doubleValue(value, option)
     guard number > 0 else { throw invalidValue(value, for: option) }
+    return number
+  }
+
+  private static func boundedDouble(
+    _ value: String, _ option: String, _ bounds: ClosedRange<Double>
+  )
+    throws -> Double
+  {
+    let number = try positiveDouble(value, option)
+    guard bounds.contains(number) else { throw invalidValue(value, for: option) }
     return number
   }
 
