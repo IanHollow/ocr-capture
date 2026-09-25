@@ -1,8 +1,8 @@
 # OCR Capture
 
-[![OpenSSF Baseline: not assessed](https://img.shields.io/badge/OpenSSF%20Baseline-not%20assessed-lightgrey)](https://baseline.openssf.org/)
+[![OpenSSF Baseline](https://www.bestpractices.dev/projects/14826/baseline)](https://www.bestpractices.dev/en/projects/14826/baseline-2)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IanHollow/ocr-capture/badge)](https://scorecard.dev/viewer/?uri=github.com/IanHollow/ocr-capture)
-[![OpenSSF Best Practices: not enrolled](https://img.shields.io/badge/OpenSSF%20Best%20Practices-not%20enrolled-lightgrey)](https://www.bestpractices.dev/)
+[![OpenSSF Developer Best Practices](https://www.bestpractices.dev/projects/14826/badge)](https://www.bestpractices.dev/en/projects/14826/passing)
 
 OCR Capture copies text from a selected screen region to the macOS clipboard.
 It runs locally and uses Apple's Screenshot and Vision services.
